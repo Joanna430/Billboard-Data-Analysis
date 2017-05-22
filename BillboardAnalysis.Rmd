@@ -1,0 +1,422 @@
+---
+title: "Analysis of Billboard Chart"
+author: "Siqi Yan, Manlin Yang, Joanna Zhou"
+output: pdf_document
+date: '`r format(Sys.time(), "%m/%d/%Y")`'
+fontsize: 10pt
+geometry: margin=1in
+---
+
+**Abstract**
+
+In modern societies, cultural change seems ceaseless. From Baby Boomers to Millennials, each generation has its differences and just like individuals, generations have personalities, values and beliefs. The newest generation, the Millennials, are just starting to enter the workforce. The flux of fashion is especially obvious for popular music. While much has been written about the origin and evolution of pop, most claims about its history are anecdotal rather than scientific in nature. To rectify this, we investigate the US Billboard Hot 100 between 1958 and 2015. The Billboard Hot 100 chart captures each week's most popular songs across all genres. Rankings are determined by radio airplay audience impressions, which are measured by Nielsen Music's radio SoundScan tracking program, Nielsen Music's sales data, and streaming activity data from various online music sources. 
+
+A dataset containing Hot 100 chart data will be used throughout the statistical analysis. This dataset include four main variables: the exact date, position, song title, and artist. We are also going to use another Billboard dataset which includes time length of the song, genre, date entered the chart, and date peaked on the chart. In order to find out the relationship between public-welcomed music and Grammy Award-welcomed music, we also introduce a Grammy Award (the most famous and authoritative award in music industry) dataset which includes song title, award category, winner, and year. 
+
+By dividing the paper into three parts, we are going to first take a close look at how uniqueness of Billboard music has changed in the last 50 years. Then, we are going to explain more about the music trend by mainly focusing on two specific artists, Elton John and Taylor Swift, whose music can represent their generations. After this, we will compare Billboard hits (which represents the taste of the public) with Grammy Award winner (which represents the taste and standard of the judges) to find out if there is any interesting pattern.
+
+
+**Overview of the Trend of Uniqueness**
+
+One thing people always talk about music these years is that the timbral variety went down. That means that songs are becoming more and more homogeneous. In other words, all pop music sounds the same now. Does this statement apply to all the time after the 1960s? In this part, we are going to determine the relationship between the number of unique songs and singers reaching top 1 on the Billboard Hot 100 chart and the year. By studying this, we can first get an overview of the trend of uniqueness of songs in the past 50 years.
+
+```{r,message = FALSE, echo = FALSE, warning = FALSE}
+setwd("D:")
+hot100<-read.csv("Hot100.csv")
+library(dplyr)
+library(ggplot2)
+year<-substr(hot100$date,1,4)
+hot100$song<-as.character(hot100$song)
+hot100$artist<-as.character((hot100$artist))
+#1
+hot100 %>% 
+  mutate(year) %>%
+  filter(position==1) %>% 
+  group_by(year,song) %>% 
+  summarise(number=n()) %>%
+  group_by(year) %>% 
+  summarise(number=n())->a
+
+a$year<-as.numeric(a$year)
+a$number<-as.numeric((a$number))  
+ggplot()+
+  geom_bar(aes(x=a$year,y=a$number),stat="identity")+
+  xlab('Year')+
+  ylab("Number of Unique Songs Each Year")+
+  theme(axis.title.x=element_text(size=10),
+        axis.title.y=element_text(size=10))+
+  labs(title='Number of Unique Songs Reaching Top 1 Since 1958')
+```
+
+Figure 1.1. We use bar plot to show the number of unique songs reached top 1 since 1958. Here, the data of 1958 can be omitted because the Billboard chart started only from August.
+
+```{r,message = FALSE, echo = FALSE, warning = FALSE}
+g=lm(number~year,data=a)
+ggplot()+
+  geom_point(aes(x=a$year,y=a$number))+
+  geom_smooth(aes(x=a$year,y=a$number))+
+  xlab('Year')+
+  ylab("Number of Unique Songs Each Year")+
+  theme(axis.title.x=element_text(size=10),
+        axis.title.y=element_text(size=10))+
+  labs(title='Number of Unique Songs Reaching Top 1 Since 1958')
+```
+
+Figure 1.2. We use smooth plot to show the number and trend of unique songs reached top 1 since 1958. Here, the data of 1958 can be omitted because the Billboard chart started only from August.
+
+Between 1958 and 2015, number of unique songs each year varied greatly. We can tell from the graph that in the past 50 years, the uniqueness of songs reached its peak three times: mid-1960s, mid-1970s and late 1980s. However, in all, the uniqueness of music on the chart is actually decreasing year by year. Now, we are going to use the same method to see if the uniqueness of artists also has the same pattern.
+
+```{r,message = FALSE, echo = FALSE, warning = FALSE}
+hot100 %>% 
+  mutate(year) %>%
+  filter(position==1) %>% 
+  group_by(year,artist) %>% 
+  summarise(numartist=n()) %>% 
+  group_by(year) %>% 
+  summarise(numartist=n())->b
+
+b$year<-as.numeric(b$year)
+b$numartist<-as.numeric((b$numartist))
+ggplot()+
+  geom_bar(aes(x=b$year,y=b$numartist),stat="identity")+
+  xlab('Year')+
+  ylab("Number of Artists Each Year")+
+  theme(axis.title.x=element_text(size=10),
+        axis.title.y=element_text(size=10))+
+  labs(title='Number of Artists Reaching Top 1 Since 1958')
+```
+
+Figure 1.3. We use bar plot to show the number of unique artists reached top 1 since 1958. Here, the data of 1958 can be omitted because the Billboard chart started only from August.
+
+```{r,message = FALSE, echo = FALSE, warning = FALSE}
+h=lm(numartist~year,data=b)
+ggplot()+
+  geom_point(aes(x=b$year,y=b$numartist))+
+  geom_smooth(aes(x=b$year,y=b$numartist))+
+  xlab('Year')+
+  ylab("Number of Unique Artists Each Year")+
+  theme(axis.title.x=element_text(size=10),
+        axis.title.y=element_text(size=10))+
+  labs(title='Number of Artists Reaching Top 1 Since 1958')
+```
+
+Figure 1.4. We use smooth plot to show the number and trend of unique artists reached top 1 since 1958.Here, the data of 1958 can be omitted because the Billboard chart started only from August.
+
+
+The pattern of uniqueness of artists shows almost the same result as the uniqueness of music. Though it has three peaks, in all, the diversity is actually decreasing. 
+
+The first peak appears in the mid-1960s. All those babies born in 1946-1947 would be 18 in 1964-1965. What that means is that American society would suddenly find itself catering to a generation of young people in a way that had never occurred before. Popular music of the United States in the 1960s became innately tied up into causes, opposing certain ideas, influenced by the sexual revolution, feminism, Black Power and environmentalism. This trend took place in a tumultuous period of massive public unrest which consisted of the Cold War, Vietnam War, and Civil Right Movement. All these social issues caused the youth of America was finding itself deeply questioning its country's leader. A large part of the innocence went out of pop music. In the mid-60's, the Beatles were merely the most visible of the many British music arts that found success in America. They were hugely popular, for that at one point they had the top five records on the Billboard Hot 100 list. Comparing figure 1.1 and 1.3, though the number of songs reached top 1 was almost the same, the number of artists reached top 1 decreased at some points. This phenomenon can be largely explained by the dominance of the Beatles. 
+
+The second peak appears in the mid-1970s. Often characterized as being shallow, 1970s pop took many forms and could be seen as a reaction against the high-energy and activist pop of the previous decade. It is a period of great innovation. Hip-hop, punk rock, and salsa were invented in 1970s in New York, which was also a center for electronic music, techno, and disco. By the middle of the decade, various trends were vying for popular success. People started to accept more different kinds of music, which leads to a more diversity of top 1 songs and artists.
+	
+The third peak appears in late 1980s. Popular music in the 1980s saw new wave entering the year as the single biggest mainstream market, with heavy metal, punk rock, and hip-hop achieving increased crossover success. In addition, the 1980s saw the reinvention of Michael Jackson and the emergence of Madonna and Whitney Houston, which arguably were the most powerful musicians during the time. Especially Michael Jackson's *Thriller* album from 1982 is considered to be the best-selling album of all time. The simultaneous rises of more than one artist caused both music and artists to be more diverse and unique in the late 1980s. 
+
+Although it shows three peaks here, in all, the Billboard Hot 100 Chart is becoming less diverse over time, for the number of unique songs and artists are decreasing. In certain way it reflects that we do not have a prosperous music industry like we used to have.
+
+
+**Top Artists Dominance**
+
+In this part, we first aim to select the top 5 artists that showed up on chart most frequently in the last 50 years and analyze the most representative artists over the years to see if there are any interesting patterns. 
+
+```{r,message = FALSE, echo = FALSE, warning = FALSE}
+library(scales)
+lime_green = "#2ecc71"
+soft_blue = "#3498db"
+pinkish_red = "#e74c3c"
+purple = "#9b59b6"
+teele = "#1abc9c"
+nice_blue = "#2980b9"
+my.theme <- 
+  theme(#plot.background = element_rect(fill="white"), # Remove background
+    panel.grid.major = element_blank(), # Remove gridlines
+    # panel.grid.minor = element_blank(), # Remove more gridlines
+    # panel.border = element_blank(), # Remove border
+    panel.background = element_blank(), # Remove more background
+    axis.ticks = element_blank(), # Remove axis ticks
+    axis.text=element_text(size=9), # Enlarge axis text font
+    axis.title=element_text(size=8), # Enlarge axis title font
+    plot.title=element_text(size=15,  hjust=0) # Enlarge, left-align title
+    #,axis.text.x = element_text(angle=60, hjust = 1) # Uncomment if X-axis unreadable 
+  )
+
+hot100 %>% 
+  mutate(year) %>%
+  select(year,position,artist)%>%
+  group_by(artist) %>% 
+  summarise(number=n()) %>%
+  arrange(desc(number)) -> famouse
+famouse %>% 
+  head(20) -> famouse
+
+ggplot(famouse, aes(x=reorder(famouse$artist, famouse$number), y=famouse$number)) + 
+  geom_bar(colour="white",fill=soft_blue,stat = "identity") + 
+  my.theme + ggtitle("Most popular Artists from 1958 to 2015") + xlab(NULL) +
+  ylab("Numbers of Hits") + 
+  geom_text(aes(label = famouse$number), size = 3, color= "grey", hjust = -.25)+
+  coord_flip() +
+  scale_y_continuous(labels = comma)
+```
+
+Figure 2.1. We get the top 20 most popular artists from 1958 to 2015.
+
+From figure 2.1., we can tell that over recent 50 years, except for several super stars, such as Elton John, Madonna, and Taylor Swift, the rest of the artists are kind of at the same level. Though the taste of the public may vary all the time, the average music choice is about the same over years.
+
+```{r,message = FALSE, echo = FALSE, warning = FALSE}
+### Dominance throughout years
+hot100 %>% 
+  mutate(year) %>% 
+  select(year,position,artist) %>% 
+  filter(artist=="Elton John"|artist=="Madonna"|artist=="Taylor Swift"|artist=="Tim McGraw"|
+           artist=="Kenny Chesney") %>% 
+  group_by(year,artist) %>% 
+  summarise(appearance=n()) -> freq
+freq$year<-as.numeric(freq$year)
+
+ggplot(data=freq,aes(x=year,y=appearance,color=artist))+
+  geom_point()+
+  geom_line()+
+  xlab('Year')+
+  ylab("Frequence of Appearance on Chart")+
+  theme(axis.title.x=element_text(size=14),
+        axis.title.y=element_text(size=14))+
+  labs(title='Popularity of Top 5 Artists From 1958 to 2015')
+```
+
+Figure 2.2. We choose the top 5 artists and plot their music time range (dominance over years).
+
+As we can tell from the graph above, these five most popular artists spread over the past 50 years. These artists clearly define music in their decades. Elton John can definitely be treated as top 1 artist in the 1970s. He received huge popularity at that time, which continued to expand to late 1990s. We can tell that Elton John occupied the chart for the longest time, ranging from 1970 to 2000. The 1980s saw the emergence of dance music and new wave. As 1970s disco fell out of fashion in the decade's early years, new huge stars such as Madonna and Michael Jackson rose. From the graph we can tell that Madonna is also a very long-lived singer since her dominance ranges from early 1980s to late 2000s. Tim McGraw and Kenny Chesney have almost the same pattern in their dominance. It is interesting because they are both country music songwriters and they are pretty close friends in daily life. As entering into our generation, there appears a huge tortuous line on Taylor Swift's dominance. The frequency of her appearance on chart rose dramatically. We will look into this dramatic change later.
+
+From the graph we can also conclude that the most popular artists before 21 century occupied the chart with a quite stable frequency. Both Elton John's and Madonna's pattern show that though they might not achieve huge success in some years, their success in music lasted for a really long time, even into the 21st century. In stead of enjoying a sudden hit of fame, they reached their high position step by step.
+
+Among the top 5 artists in the last 50 years. We want to take a closer look at the two most representative singers who can clearly represents his or her generation: Elton John and Taylor Swift. By comparing earlier generation (Elton John's generation) and later generation (Taylor Swift's generation), we can combine the social situation at that time to draw conclusions about music trends.
+
+
+
+
+*Elton John*
+
+```{r,message = FALSE, echo = FALSE, warning = FALSE}
+hot100 %>% 
+    mutate(year) %>%
+    filter(artist=="Elton John") %>% 
+    group_by(year) %>% 
+    summarise(weeks=n()) -> dom1
+  
+dom1$year<-as.numeric(dom1$year)
+ggplot(data=dom1,aes(x=year,y=weeks))+
+    geom_bar(stat="identity",fill="light blue")+
+    xlab('Year')+
+    ylab("Number of weeks on chart each year")+
+    theme(axis.title.x=element_text(size=14),
+          axis.title.y=element_text(size=14))+
+    labs(title="Number of weeks on chart since 1958")
+```
+
+Figure 2.3. Elton John's number of weeks on chart each year.
+
+Born on March 25, 1947, in England, Elton John's unique blend of pop and rock styles turned him into one of the biggest music icons of the 20th century. He excelled in music from a young age, and released his first self-titled American album in 1970, making him a huge international star. From figure 2.3., we can tell that he was of most popular between 1972 and 1976. He wrote a string of excellent pop songs in rapid succession in the early 70's, which helped him to set up him own brand name. If you're going to salute any British pop star as an icon, Elton is certainly a good place to start. 
+
+```{r,message = FALSE, echo = FALSE, warning = FALSE}
+hot100 %>% 
+  mutate(year) %>%
+  filter(artist=="Elton John",position==1) %>% 
+  group_by(year,song) %>% 
+  summarise(weeks=n()) -> hit1
+
+hit1 %>%  knitr::kable(align = "c")
+```
+
+Table 2.1. Elton John's top 1 hit songs on charts.
+
+However, why is he so popular? For one thing, he is a unique and formidable talent. He is one of the all-time songwriting greats with a distinctive, idiosyncratic style that ranges across the piano keyboard, balancing melodic flamboyance with emotional punch, capable of crafting songs so elegant and perfect they become instant classics. He is unapologetically and authentically himself. Elton is the most engaged of all the veteran superstar artists, an obsessive music fan who keeps himself up to date with everything that goes on in the charts, regularly calling up young artists to voice his enthusiasm and lend his advice and support. There is a great generosity of spirit about him, he is an enthusiast by nature and he doesn't edit himself in public. This is important in the 1970s, in which decade people were always encouraged to speak up their voices. It was, not only his music, but also his persona that made him welcomed by the public at all times. His attitude toward music and critics established a trend for his generation.
+
+
+*Taylor Swift*
+
+
+```{r,message = FALSE, echo = FALSE, warning = FALSE}
+hot100 %>% 
+  mutate(year) %>%
+  filter(artist=="Taylor Swift") %>% 
+  group_by(year) %>% 
+  summarise(weeks=n()) -> dom3
+
+dom3$year<-as.numeric(dom3$year)
+ggplot(data=dom3,aes(x=year,y=weeks))+
+  geom_bar(stat="identity",fill="light blue")+
+  xlab('Year')+
+  ylab("Number of weeks on chart each year")+
+  theme(axis.title.x=element_text(size=14),
+        axis.title.y=element_text(size=14))+
+  labs(title="Number of weeks on chart since 1958")
+```
+
+Figure 2.4. Taylor Swift's number of weeks on chart since 1958.
+
+For casual Swift listeners like us in our generation, it may be a challenge to think about what music was like before her presence, whether in the form of the curly-haired Nashville star or the polished pop icon. The graph above shows the sudden rise of Taylor Swift between 2007 and 2008. Since then, as long as she released new song, the title song would be on the chart. Taylor Swift's success seems to be easier than Elton John's, however, there are more social factors that lead to her success.
+
+```{r,message = FALSE, echo = FALSE, warning = FALSE}
+hot100 %>% 
+  mutate(year) %>%
+  filter(artist=="Taylor Swift",position==1) %>% 
+  group_by(year,song) %>% 
+  summarise(weeks=n()) -> hit3
+
+hit3 %>%  knitr::kable(align = "c")
+```
+
+Table 2.2. Taylor Swift's top 1 hit songs on charts.
+
+Both the table and the graph above shows that as time flies, Taylor Swift's songs are achieving more and more success than before. Her rank gets higher and the number of weeks on the chart keeps rising these years. We can get some music trend conclusion by also taking current social situation into consideration. 
+
+Compared to Elton John, Taylor Swift more tends to enjoy a sudden hit of fame. The biggest difference between artists in the past (e.g. Elton John) and artists now (e.g. Taylor Swift) is that artists nowadays are more likely and easier to have a large fan base. By using social media the same way as her young listeners do, Swift built a massive online fan base, one that is swelled with each subsequent release and currently numbers in the hundreds of millions of followers, with more than 81 million on Twitter alone. Her career grew up alongside the advent of social media-her debut album came out three months after the launch of Twitter and two years after Facebook. The convenience of social media these days helps artists more easily to achieve a sudden success. However, the bad thing about the sudden fame is that it cannot secure your popularity among the public for a really long time. In order to gain more popularity, artists definitely need to work much harder than before and come up with newer stles of music. It is kind of hard to secure artists' large fanbases in our generation.
+
+After analyzing the two top artists over the last 50 years, it would be more helpful to look at the top genres of hit songs in order to find out more interesting patterns among top artists.
+
+
+```{r,message = FALSE, echo = FALSE, warning = FALSE}
+#Part 2 last: Genre
+setwd("D:")
+data <- read.csv("billboard.csv")
+data <- data[1:5]
+data %>% 
+  group_by(genre) %>% 
+  summarise(number=n()) -> dat
+##Data Visualization
+
+
+ggplot(dat, aes(x=reorder(dat$genre, dat$number), y=dat$number)) + 
+  geom_bar(colour="white",fill=purple,stat = "identity") + 
+  my.theme + ggtitle("Genres of Hits") + xlab(NULL) +
+  ylab("Numbers of Hits") + 
+  geom_text(aes(label = dat$number), size = 3, color= "grey", hjust = -.25)+
+  coord_flip() +
+  scale_y_continuous(labels = comma)
+```
+Figure 2.5. It generates the genres of hit songs.
+
+The genre analysis above tells us that the most popular artists on chart represent rock and country music, which exactly represents the artists we choose for this part--Taylor Swift (country music) and Elton John (rock music). Rock music is a genre of popular music that originated as "rock and roll" in the United States in the 1950s, and developed into a range of different styles in the 1960s and later. It has its roots in 1940s' and 1950s' rock and roll, itself heavily influenced by blues, rhythm and blues, and country music. All these combinations with other kinds of music can largely explain the reason of the popularity of country, R&B, and pop music, which also rank top on the chart above.
+
+
+
+**Grammy Award and Billboard**
+
+
+```{r,message = FALSE, echo = FALSE, warning = FALSE}
+setwd("D:")
+d <- read.csv("grammysTo2014.csv")
+d$WinnersBand <- gsub( " *\\(.*?\\) *", "", d$Winners)
+d$isArtist <- grepl("artist", d$Winners)
+d$artists <- sub(', art.*', '', d$WinnersBand)
+d$artistsSep <- gsub("&",",",d$artists)
+artists <- d
+s <- strsplit(artists$artistsSep, split = ",")
+d2 <- data.frame(Year=rep(artists$Year, sapply(s, length)),
+                 Category = rep(artists$Category, sapply(s, length)),
+                 Title=rep(artists$Title, sapply(s, length)),
+                 artistFinal = unlist(s))
+trim <- function (x) gsub("^\\s+|\\s+$", "", x)
+d2$artistFinal <- trim(d2$artistFinal)
+d2$Category<-as.character(d2$Category)
+
+# grammy song of the year
+d2 %>% 
+  filter(Category=="Song Of The Year") %>%
+  select(-artistFinal)->grammy1 
+grammy1<-unique.data.frame(grammy1)  
+
+# grammy best new artist
+d2 %>% 
+  filter(Category=="Best New Artist") %>% 
+  select(-Title)->grammy2
+
+hot100<-read.csv("Hot100.csv")
+year<-substr(hot100$date,1,4)
+hot100$song<-as.character(hot100$song)
+hot100$artist<-as.character((hot100$artist))
+
+#hot100 Top1 most frequent song
+hot100 %>% 
+  mutate(year) %>%
+  select(year,position,song)%>%
+  filter(position==1) %>% 
+  group_by(year,song) %>% 
+  summarise(number=n()) %>% 
+  arrange(year,desc(number)) %>% 
+  group_by(year) %>% 
+  filter(number==max(number))->hot100a
+
+#hot100 most frequent artist
+hot100 %>% 
+  mutate(year) %>%
+  select(year,position,artist)%>%
+  group_by(year,artist) %>% 
+  summarise(number=n()) %>%
+  arrange(year,desc(number)) %>% 
+  group_by(year) %>% 
+  filter(number==max(number))->hot100b
+
+grammy1$Year<-as.character(grammy1$Year)
+grammy2$Year<-as.character(grammy2$Year)
+# shared song
+a<-full_join(grammy1,hot100a,by=c("Year"="year"))
+a %>% 
+  filter(Year!=2014,Year!=2015) %>% 
+  mutate(shared=Title==song) %>% 
+  filter(shared=="TRUE") %>% 
+  select(Year,song) %>% 
+  knitr::kable(align = "c")
+```
+
+Table 3.1. List of songs that match both Billboard hit chart and Grammy "Song of the Year" Award.
+
+The first Grammy Awards ceremony was held on May 4, 1959, which is almost the same as the start date of Billboard. Over the last 50 years, we can tell from the table that only a very few of the "Song of the Year" award winner match the Billboard top hits. We can get a more intuitive look by calculating the proportional number:
+
+```{r,message = FALSE, echo = FALSE, warning = FALSE}
+a %>% 
+  filter(Year!=2014,Year!=2015) %>% 
+  mutate(shared=Title==song)->compare1
+prop1=mean(compare1$shared)
+prop1
+```
+
+This is such a small number, which shows that there is absolutely no positive relationship between Grammy "Song of the Year" and Billboard top hits. We can use the same method to figure out the shared artists.
+
+```{r,message = FALSE, echo = FALSE, warning = FALSE}
+# shared artist
+library(stringr)
+b<-full_join(grammy2,hot100b,by=c("Year"="year"))
+b$artist %>%
+  str_replace_all("Maroon5","Maroon 5")->b$artist
+b %>% 
+  mutate(shared=artistFinal==artist) %>%
+  filter(shared=="TRUE") %>%
+  select(Year,artist) %>% 
+  knitr::kable(align = "c")
+```
+
+Table 3.2. List of artist that match both Billboard hit chart and Grammy "Artist of the Year" Award.
+
+And here is the proportional number:
+
+```{r,message = FALSE, echo = FALSE, warning = FALSE}
+b %>% 
+  filter(!is.na(Category)) %>% 
+  mutate(shared=artistFinal==artist)->compare2
+prop2=mean(compare2$shared)
+prop2
+```
+
+It is even much smaller than the previous one. It becomes obvious that there is almost no relationship between Billboard chart and Grammy Award.
+
+Based on these statistics, we can tell that although as the global music award of the most concern, Grammy Award is kind of losing touch with contemporary popular culture. As an institution that celebrates artistic works of musicians, singers, songwriters, producers and technical specialists, we have come to expect that the Grammys upholds all of the values that reflect the very best in music that is born from our culture. Unfortunately, the awards show has become a series of hypocrisies and contradictions, leaving people to question why any contemporary popular artist would even participate. To say it in a less critical way, Grammy reflects what judges think, while Billboard stays true to what is really popular right now among the public. In this sense, Grammy is much more orthodox than Billboard. However, it does not mean Billboard is better, because they both view things from different angles.
+
+
+**Conclusion**
+
+
+For this project we are able to answer all three questions listed above. For the first part, we are able to see from the graphs that despite three peak time, the Billboard Hot100 Chart is becoming less diverse over time, for the number of unique songs and artists are decreasing now. In a certain way it reflects that we do not have a prosperous music industry like we used to because certain amount of particular songs are occupying the chart this whole time. Same applies to the artist, nowadays the audience start to rely on some specific famous artists rather to appreciate new ones.
+
+The second conclusion we have is about the pattern of the dominance of the artists. Artists nowadays are enjoying the sudden hit of fame, but if they do not take good advantages of it, it can also die down quickly. However, artists before tended to have a more stable performance.
+
+Finally, when we compare Billboard with Grammy. It is apparent that Billboard and Grammy have very few crossover songs and artists. Grammy is more judge-oriented, and since they barely overlap, it indicates that Billboard is still affected by the public taste that can truly reflects what American music is like today.
